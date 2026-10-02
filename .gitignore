@@ -1,0 +1,9 @@
+__pycache__/
+.DS_Store
+
+# Local paper source material (do not commit)
+/*.pdf
+/*.tex
+/*.zip
+/figures/
+/consdl-project-content.md

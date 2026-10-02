@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConSDL | Consistent Concept Discovery with Sparse Coding</title>
+  <meta name="description" content="ConSDL uses per-sample sparse coding to learn more consistent dictionaries and coefficients across training runs on vision and language model activations.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Beyond SAEs: Consistent Concept Discovery with Sparse Coding">
+  <meta property="og:description" content="ConSDL uses per-sample sparse coding to learn more consistent dictionaries and coefficients across training runs on vision and language model activations.">
+  <meta property="og:image" content="static/images/consistency_lines.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#b91c1c">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9E9;</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="static/css/style.css">
+
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script defer src="static/data/results.js"></script>
+  <script defer src="static/js/charts.js"></script>
+  <script defer src="static/js/main.js"></script>
+</head>
+
+<body class="bg-white font-sans text-slate-800 antialiased">
+  <header id="nav" class="fixed inset-x-0 top-0 z-40 transition-all duration-300">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <a href="#top" id="nav-brand" class="font-display text-lg font-bold tracking-tight opacity-0 transition-opacity"><strong class="text-[#d62728]">ConSDL</strong></a>
+      <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
+        <a href="#overview" class="hover:text-[#d62728]">Overview</a>
+        <a href="#method" class="hover:text-[#d62728]">Method</a>
+        <a href="#synthetic" class="hover:text-[#d62728]">Synthetic</a>
+        <a href="#results" class="hover:text-[#d62728]">Results</a>
+        <a href="#analysis" class="hover:text-[#d62728]">Analysis</a>
+        <a href="#demo" class="hover:text-[#d62728]">Demo</a>
+        <a href="#bibtex" class="hover:text-[#d62728]">BibTeX</a>
+      </div>
+      <div class="relative">
+        <button class="more-btn">More SAE projects <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i></button>
+        <div class="more-menu hidden">
+          <a href="https://jjho-choi.github.io/ConcepScope-projectpage/" target="_blank">
+            <div class="text-sm font-semibold text-slate-800">ConceptScope</div>
+            <div class="text-xs text-slate-500">Characterizing dataset bias via disentangled visual concepts · NeurIPS 2025</div>
+          </a>
+          <a href="https://arxiv.org/abs/2412.05276" target="_blank">
+            <div class="text-sm font-semibold text-slate-800">PatchSAE</div>
+            <div class="text-xs text-slate-500">Selective remapping of visual concepts during adaptation · ICLR 2025</div>
+          </a>
+          <a href="https://arxiv.org/abs/2507.12464" target="_blank">
+            <div class="text-sm font-semibold text-slate-800">CytoSAE</div>
+            <div class="text-xs text-slate-500">Interpretable cell embeddings for hematology · MICCAI 2025</div>
+          </a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section id="hero" class="hero-bg relative overflow-hidden pt-28">
+      <div class="mx-auto max-w-5xl px-4 text-center">
+        <span class="badge">Preprint · 2026</span>
+        <h1 class="hero-title">Beyond SAEs: Consistent Concept Discovery with Sparse Coding</h1>
+        <p class="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
+          Sparse autoencoders trained on the same activations can produce different dictionaries and coefficients
+          across random seeds. We propose <strong>Consistent Sparse Dictionary Learning (ConSDL)</strong>, which replaces
+          the learned encoder with <strong>per-sample sparse coding</strong> to improve the consistency of both
+          dictionaries and coefficients across training runs.
+        </p>
+        <div class="mt-8 font-display text-lg text-slate-800">
+          <a href="#" class="author">Jinho Choi</a><sup>1</sup>,
+          <a href="#" class="author">Hyesu Lim</a><sup>2</sup>,
+          <a href="#" class="author">Jaegul Choo</a><sup>1</sup>,
+          <a href="#" class="author">Steffen Schneider</a><sup>2</sup>
+        </div>
+        <div class="mt-2 flex flex-wrap justify-center gap-x-4 text-sm text-slate-500">
+          <span><sup>1</sup>Korea Advanced Institute of Science &amp; Technology (KAIST)</span>
+          <span><sup>2</sup>Helmholtz Munich</span>
+        </div>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <!-- Replace data-notice with href="..." once the paper and code are public. -->
+          <a href="#" class="btn" data-notice="The paper will be released soon."><i class="fa-solid fa-file-pdf"></i> Paper</a>
+          <a href="#" class="btn" data-notice="The code will be released soon."><i class="fa-brands fa-github"></i> Code</a>
+          <a href="#demo" class="btn btn-accent"><i class="fa-solid fa-circle-play"></i> Demo</a>
+        </div>
+      </div>
+      <div class="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-4 px-4 md:grid-cols-4">
+        <div class="stat"><div class="stat-num">+17.6%</div><div class="stat-label">dictionary consistency<br><span class="text-slate-400">relative gain over baseline average</span></div></div>
+        <div class="stat"><div class="stat-num">+35.9%</div><div class="stat-label">coefficient consistency<br><span class="text-slate-400">relative gain over baseline average</span></div></div>
+        <div class="stat"><div class="stat-num">16</div><div class="stat-label">synthetic settings<br><span class="text-slate-400">near-perfect dictionary and coefficient recovery</span></div></div>
+        <div class="stat"><div class="stat-num">4</div><div class="stat-label">model backbones<br><span class="text-slate-400">CLIP · DINOv2 · GPT-2 · Pythia</span></div></div>
+      </div>
+      <p class="mt-3 text-center text-xs text-slate-400">Consistency gains are averaged across four backbones relative to six SAE baselines, with nine dictionary-width and sparsity settings per backbone.</p>
+    </section>
+
+    <!-- Overview -->
+    <section id="overview" class="section">
+      <div class="mx-auto max-w-6xl px-4">
+        <figure class="fig">
+          <div class="fig-frame"><img src="static/images/consistency_lines.png" alt="Cross-seed consistency and dictionary utilization across four backbones" class="zoomable mx-auto w-full"></div>
+          <figcaption class="caption">
+            <strong>More consistent dictionaries and coefficients across training runs.</strong> We compare ConSDL with six
+            SAE baselines on CLIP, DINOv2, Pythia-160M, and GPT-2 Small, across 4×, 8×, and 16× dictionary expansion and
+            sparsity levels ℓ<sub>0</sub> ≈ 32, 64, and 128. <span class="hl-ours">ConSDL (red)</span> improves cross-seed
+            consistency on average while maintaining high dictionary utilization.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Method -->
+    <section id="method" class="section sec-alt">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="h2 text-center">Method</h2>
+        <p class="lead">
+          ConSDL replaces the learned encoder with per-sample sparse coding, alternating between coefficient inference
+          and dictionary updates. Coefficient refitting and co-active similarity regularization stabilize dictionary
+          learning by correcting shrinkage bias from the sparsity penalty and reducing redundancy among co-active atoms.
+        </p>
+
+        <figure class="fig">
+          <div class="fig-frame"><img src="static/images/method.png" alt="ConSDL overview and training-step pseudocode" class="zoomable mx-auto w-full"></div>
+        </figure>
+
+        <div class="my-10 grid gap-6 md:grid-cols-3">
+          <div class="card">
+            <div class="card-step">1</div>
+            <h3 class="h3">Per-sample sparse coding</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              For each model activation, FISTA iteratively optimizes nonnegative sparse coefficients under the current
+              dictionary. Each iteration takes a gradient step on the reconstruction term, followed by nonnegative soft
+              thresholding for the ℓ₁ penalty.
+            </p>
+            <div class="math">$$\mathbf{a}^{\mathrm{sc}}=\arg\min_{\mathbf{a}\ge0}\tfrac12\lVert\mathbf{x}-W_{\mathrm{dec}}\mathbf{a}-\mathbf{b}_{\mathrm{dec}}\rVert_2^2+\lambda\lVert\mathbf{a}\rVert_1$$</div>
+          </div>
+          <div class="card">
+            <div class="card-step">2</div>
+            <h3 class="h3">Coefficient refitting</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              The ℓ₁ penalty promotes sparsity but also shrinks nonzero coefficients, potentially underestimating
+              selected atoms’ contributions during dictionary updates. ConSDL refits their magnitudes on the support
+              selected by FISTA without this penalty, while retaining nonnegativity.
+            </p>
+            <div class="math">$$\mathbf{a}^{\mathrm{refit}}=\arg\min_{\mathbf{a}\ge0,\;a_j=0\;\forall j\notin S^{\mathrm{sc}}}\tfrac12\lVert\mathbf{x}-W_{\mathrm{dec}}\mathbf{a}-\mathbf{b}_{\mathrm{dec}}\rVert_2^2$$</div>
+          </div>
+          <div class="card">
+            <div class="card-step">3</div>
+            <h3 class="h3">Co-active similarity regularization</h3>
+            <p class="text-sm leading-relaxed text-slate-600">
+              Although sparse coding improves coefficient estimation, atoms can still converge to similar directions
+              during dictionary learning. ConSDL reduces this redundancy by penalizing high cosine similarity between
+              each active atom and its most similar atom active for the same input.
+            </p>
+            <div class="math">$$\mathcal{L}_{\mathrm{sim}}=\frac{1}{|V_\mu|}\sum_{(i,j)\in V_\mu}(s_{i,j}-\mu)^2$$</div>
+          </div>
+        </div>
+
+        <h3 class="h3-section">Why refitting and regularization matter</h3>
+        <p class="body-text">
+          Removing either coefficient refitting or co-active similarity regularization makes dictionary learning less
+          stable. At 16× expansion and matched sparsity (ℓ₀ ≈ 128), refitting raises reconstruction R² from 0.87 to 0.92
+          on CLIP and eliminates the dead atoms observed with sparse coding alone on Pythia-160M. However, refitting alone
+          still leaves thousands of duplicate atoms on both backbones. Adding similarity regularization reduces these
+          duplicates to nearly zero, yielding high consistency with a fully usable dictionary.
+        </p>
+
+        <!-- Rendered by static/js/charts.js from window.ABLATION (paper Table 1). -->
+        <div id="ablation-chart" class="my-8"></div>
+      </div>
+    </section>
+
+    <!-- Synthetic -->
+    <section id="synthetic" class="section">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="h2 text-center">Recovering ground-truth dictionaries and coefficients</h2>
+        <p class="lead">
+          We test whether ConSDL improves dictionary and coefficient recovery over SAE baselines as dictionary size and
+          frequency imbalance increase. We generate 768-dimensional synthetic data with an expected 60 active atoms per
+          sample and log-normal nonzero coefficients. Across 16 settings, dictionary sizes range from 3,072 to 12,288
+          atoms and Zipf exponents from β = 0 (uniform selection) to β = 1 (strong frequency imbalance).
+        </p>
+
+        <figure class="fig">
+          <div class="fig-frame"><img src="static/images/synthetic_dgp.png" alt="Synthetic data generating process" class="zoomable mx-auto w-full" style="max-width:48rem"></div>
+          <figcaption class="caption">
+            <strong>Synthetic data with a known decomposition.</strong> Observations are sparse linear combinations of
+            unit-norm dictionary atoms. The plots show the distributions of support size, nonzero coefficient
+            magnitudes, and atom-selection frequencies.
+          </figcaption>
+        </figure>
+
+        <p class="body-text">
+          SAE recovery is generally strong for smaller dictionaries and more balanced activation frequencies, but
+          declines as the settings become more challenging. <strong>ConSDL achieves near-perfect dictionary and
+          coefficient recovery across all 16 settings.</strong>
+        </p>
+
+        <figure class="fig">
+          <div class="fig-frame"><img src="static/images/synthetic_recovery.png" alt="Ground-truth recovery and cross-seed consistency" class="zoomable mx-auto w-full"></div>
+          <figcaption class="caption">
+            <strong>Ground-truth recovery and cross-seed consistency.</strong> SAE recovery declines as dictionary size
+            and frequency imbalance increase, while ConSDL maintains near-perfect dictionary and coefficient recovery.
+            Cross-seed consistency strongly correlates with ground-truth recovery (Pearson r = 0.90 for dictionaries and
+            r = 0.99 for coefficients). These correlations support its use when ground truth is unavailable, although
+            consistency alone does not establish recovery.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="section sec-alt">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="h2 text-center">Results on vision and language models</h2>
+        <p class="lead">
+          We train ConSDL and six SAE baselines on penultimate-layer activations from CLIP ViT-B/16 and DINOv2-B/14
+          using ImageNet, and on layer-9 activations from GPT-2 Small and Pythia-160M using 500M FineWeb tokens. We
+          evaluate cross-seed consistency at dictionary expansions of 4×, 8×, and 16× and sparsity levels ℓ₀ ≈ 32,
+          64, and 128, with three training seeds per configuration.
+        </p>
+
+        <!-- Rendered by static/js/charts.js from window.RESULTS (paper Tables 13–16). -->
+        <div id="results-chart" class="my-8"></div>
+
+        <p class="body-text">
+          <strong>Dictionary consistency (DCS)</strong> measures the mean decoder cosine similarity after Hungarian
+          matching. <strong>Coefficient consistency (MCC)</strong> measures the mean coefficient correlation under the
+          same matching. Cross-seed scores are averaged over all seed pairs. The <strong>usable atom fraction</strong>
+          measures how much of the dictionary is neither dead nor duplicated.
+        </p>
+        <p class="body-text">
+          ConSDL achieves the highest average DCS and MCC across the four backbones. MP-SAE has comparable average
+          dictionary consistency but substantially lower coefficient consistency. ConSDL improves both metrics while
+          maintaining high dictionary utilization.
+        </p>
+      </div>
+    </section>
+
+    <!-- Analysis -->
+    <section id="analysis" class="section">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="h2 text-center">Consistency beyond individual atoms</h2>
+        <p class="lead">
+          We examine whether atom-level consistency extends to the overall structure of the dictionary. For CLIP
+          ViT-B/16, we cluster atoms based on similarity between decoder directions and compare cluster sizes and
+          centroids across training runs.
+        </p>
+
+        <figure class="fig">
+          <div class="fig-frame"><img src="static/images/dictionary_cluster_consistency.png" alt="Dictionary cluster consistency across training runs" class="zoomable mx-auto w-full"></div>
+          <figcaption class="caption">
+            <strong>Dictionary cluster consistency across training runs.</strong> <strong>(A)</strong> Joint UMAP of
+            ConSDL decoder atoms at 16×, ℓ<sub>0</sub> ≈ 128, colored by top 30 clusters from a reference run.
+            <strong>(B)</strong> Cluster-size profiles for ConSDL and Matryoshka. ρ denotes the Spearman correlation of
+            cluster sizes across runs. <strong>(C)</strong> Normalized cluster-centroid agreement across granularities.
+            Lines show the mean over nine CLIP settings, and shading shows the interquartile range.
+          </figcaption>
+        </figure>
+
+        <h3 class="h3-section">Consistent activation patterns</h3>
+        <p class="body-text">
+          Qualitative examples in CLIP and Pythia-160M show how matched atoms activate across training runs. In CLIP,
+          matched atoms highlight similar image regions and retrieve similar visual examples. In Pythia, matched atoms
+          highlight similar tokens and contexts, including animal nouns and sentence-final punctuation.
+        </p>
+
+        <div class="fig-tabs" data-tabs>
+          <div class="mb-4 flex flex-wrap justify-center gap-2">
+            <button class="tab tab-active" data-tab="clip">CLIP ViT-B/16</button>
+            <button class="tab" data-tab="pythia">Pythia-160M</button>
+          </div>
+          <figure class="fig" data-panel="clip">
+            <div class="fig-frame"><img src="static/images/region_decomposition_clip.jpg" alt="Region decomposition and cross-seed latents in CLIP ViT-B/16" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>Region decomposition and cross-seed latent analysis in CLIP ViT-B/16.</strong> At 16× expansion and
+              ℓ<sub>0</sub> ≈ 128, (A) image patches are independently clustered by coefficient vectors across three
+              seeds. (B–C) Activation maps and top-activating images compare selected latents with their nearest
+              cross-seed matches, showing animals in close contact (B) and a heart/romance motif (C).
+            </figcaption>
+          </figure>
+          <figure class="fig hidden" data-panel="pythia">
+            <div class="fig-frame"><img src="static/images/region_decomposition_pythia.jpg" alt="Region decomposition and cross-seed latents in Pythia-160M" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>Region decomposition and cross-seed latent analysis in Pythia-160M.</strong> At 16× expansion, (A)
+              tokens in a 96-token window are independently clustered by coefficient vectors across three seeds. (B–C)
+              Highlighted activations and top-activating contexts compare selected latents with their nearest cross-seed
+              matches, capturing animal nouns (B) and sentence-final punctuation and the preceding token (C).
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo" class="section sec-dark">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="h2 text-center">Interactive Demo</h2>
+        <p class="lead">Explore how matched dictionary atoms activate across training seeds and methods.</p>
+        <div class="demo-root">
+          <div class="flex min-h-[14rem] flex-col items-center justify-center text-center text-slate-400">
+            <i class="fa-solid fa-flask mb-3 text-3xl text-[#d62728]"></i>
+            <div class="font-display text-lg text-slate-200">Coming soon</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BibTeX -->
+    <section id="bibtex" class="section">
+      <div class="mx-auto max-w-3xl px-4">
+        <h2 class="h2">BibTeX</h2>
+        <div class="relative">
+          <button class="btn-sm absolute right-3 top-3" data-copy="#bibtex-code"><i class="fa-regular fa-copy"></i><span>Copy</span></button>
+<pre class="bib"><code id="bibtex-code">@misc{consdl2026,
+  title  = {Beyond SAEs: Consistent Concept Discovery with Sparse Coding},
+  author = {Choi, Jinho and Lim, Hyesu and Choo, Jaegul and Schneider, Steffen},
+  year   = {2026}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer border-t border-slate-200 py-8 text-center text-xs text-slate-400">
+    Page design inspired by the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a>
+    and <a href="https://jjho-choi.github.io/ConcepScope-projectpage/">ConceptScope</a>.
+  </footer>
+
+  <div id="lightbox" class="fixed inset-0 z-50 hidden cursor-zoom-out items-center justify-center bg-slate-900/85 p-4">
+    <img class="max-h-full max-w-full rounded-lg bg-white p-2 shadow-2xl" alt="">
+  </div>
+  <div id="notice" class="notice" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-info"></i><span></span><button aria-label="Close">&times;</button>
+  </div>
+  <button id="to-top" aria-label="Scroll to top"
+    class="fixed bottom-6 right-6 z-30 hidden h-11 w-11 items-center justify-center rounded-full bg-[#d62728] text-white shadow-lg hover:bg-[#b91c1c]">
+    <i class="fa-solid fa-chevron-up"></i>
+  </button>
+</body>
+</html>
