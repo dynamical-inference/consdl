@@ -1,5 +1,16 @@
 __pycache__/
 .DS_Store
+*.pyc
+*.egg-info/
+.env
+.ipynb_checkpoints/
+
+# Everything the scripts write: checkpoints, metrics, caches, logs.
+var/
+reports/
+
+# Local cluster scripts (env setup, sbatch) — not part of the release.
+local/
 
 # Local paper source material (do not commit)
 /*.pdf

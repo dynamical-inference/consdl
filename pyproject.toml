@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "consdl"
+version = "0.1.0"
+description = "ConSDL: consistent sparse dictionary learning, with the SAE baselines and the cross-seed consistency evaluation used in the paper."
+authors = [{ name = "Anonymous Authors" }]
+requires-python = ">=3.12"
+dependencies = [
+    "torch",
+    "transformers",
+    "datasets",
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "einops",
+    "pyarrow",
+    "filelock",
+    "tqdm",
+    "python-dotenv",
+    "shortuuid",
+    "wandb",
+    "safetensors",
+    "huggingface_hub",
+]
+
+[project.optional-dependencies]
+# Faster nearest-neighbour search in the duplicate counts; optional.
+faiss = ["faiss-cpu"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

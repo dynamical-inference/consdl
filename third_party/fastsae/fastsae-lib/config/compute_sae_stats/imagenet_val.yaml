@@ -1,0 +1,9 @@
+# === SAE path ===
+# sae_path: /path/to/checkpoints
+sae_path: /path/to/checkpoints
+stats_dataset_name: imagenet
+stats_dataset_split: val
+stats_dataset_seed: 1
+n_ref: 100
+batch_size: 128
+sparsity_thr: [0.001, 0.01, 0.1]

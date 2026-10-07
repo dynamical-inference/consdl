@@ -1,0 +1,47 @@
+# === Backbone architecture ===
+model_type: "clip"
+model_name_hf: "openai/clip-vit-base-patch16"
+
+# === SAE architecture ===
+sae_type: "base"
+d_in: 768
+expansion_factor: 64
+b_dec_init_method: "geometric_median"
+activation: "relu"
+
+# === SAE input ===
+class_token: False
+hook_module_name: "resid"
+hook_module_layer: -2
+
+# === Training steps ===
+total_training_samples: 2_621_440
+
+# === Training parameters ===
+l1_coefficient: 0.00008
+lr: 0.0004
+lr_scheduler_name: "constantwithwarmup"
+lr_warm_up_steps: 500
+batch_size: 128
+
+# === Resample protocol ===
+use_ghost_grads: True
+latent_sampling_window: 64
+latent_sampling_method: None
+resample_batches: 32
+latent_reinit_scale: 0.2
+dead_latent_window: 64
+dead_latent_estimation_method: "no_fire"
+dead_latent_threshold: 0.000001
+
+# === WANDB ===
+log_to_wandb: True
+wandb_project: "patchsae_v2"
+wandb_entity: null
+wandb_log_frequency: 10
+
+# === Misc ===
+n_checkpoints: 5
+checkpoint_path: "checkpoints_raw"
+device: "cuda"
+dtype: "float32"

@@ -1,0 +1,9 @@
+# === SAE path ===
+# sae_path: /path/to/checkpoints
+sae_path: /path/to/checkpoints
+stats_dataset_name: imagenet
+stats_total_iter_samples: 1281167
+stats_dataset_split: train
+stats_dataset_seed: 1
+n_ref: 20
+batch_size: 256
