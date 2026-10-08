@@ -89,6 +89,56 @@ from consdl.io.hub import load_pretrained
 sae = load_pretrained("vision/clip-vit-b-16_layer10/consdl/x16/l0_64/seed0")
 ```
 
+## Viewers
+
+Two interactive pages, served per backbone behind one hub:
+
+* **Latent explorer** (`/explore`): pick an input (an ImageNet val image, an
+  upload, typed text or a FineWeb window) and see how each SAE of a view
+  decomposes it. Each card shows the input coloured by its latents (by
+  dictionary cluster, by a region carve at k, or as one latent's heatmap) next
+  to that SAE's decoder UMAP. Hovering a patch or token rings its active
+  latents. Hovering a latent shows its heatmap, its matched latent in the other
+  panels and its top inputs.
+* **Cluster consistency** (`/view`): the decoder atoms of several dictionaries
+  (the seeds of one cell, seed 0 of every cell of one arch, or seed 0 of every
+  arch for one cell) on one joint UMAP. Colours are seed 0's spherical k-means
+  clusters (48 atoms per cluster). Hovering an atom shows its Hungarian or
+  nearest-neighbour match in every other dictionary, the atoms within a cosine
+  threshold of it, and each match's top inputs. A chart counts every
+  dictionary's atoms per anchor cluster.
+
+Build the data from any checkpoint tree in the release layout (the Hub
+download or `var/checkpoints/<modality>`) into `var/results/viewers/`, then
+launch:
+```bash
+python -m consdl.cli.viewer_precompute --root var/release \
+    --backbones clip-vit-b-16_layer10 pythia-160m_layer8 --expansions 16 --seeds 3 \
+    --images-per-class 10 --lm-seqs 2048
+python -m consdl.cli.viewer --backbones clip-vit-b-16_layer10 pythia-160m_layer8 --port 8760
+# -> http://<host>:8760/ (one server per backbone on 8761, 8762, ...)
+```
+`viewer_precompute` takes `--root` (a release root, a modality dir or one
+`<backbone>_layer<L>` dir), `--backbones`, `--archs`, `--expansions`,
+`--levels`, `--seeds N` (first N seeds per cell), `--stages`,
+`--images-per-class` (vision pool, default all 50), `--lm-seqs` (LM pool of
+1024-token FineWeb sequences, default 2048), `--out-root` and `--force`.
+`viewer` takes `--backbones`, `--views-root`, `--port` (the hub) and
+`--backend-ports` (default `--port`+1, +2, ...). Open the hub URL it prints.
+The top bar has a backbone selector, grouped by modality, and tabs for the
+two pages. The choice is kept in a cookie, and `?bb=<backbone>` selects one
+in a link. From a laptop, tunnel the hub port first:
+`ssh -N -L 8760:<node>:8760 <login-host>`, then open `http://localhost:8760/`.
+
+The precompute stages are `kmeans`, `figures` (cluster-size curves),
+`views`, `archviews` and `tops`; `--stages` and `--archs` split them across
+jobs. Only `tops` needs a GPU. It encodes an input pool and keeps each
+latent's top 100 inputs, because the released stats hold per-latent scalars
+only. Vision images are ranked by their peak |a| over patches, and the pass
+also stores per-image footprints for the footprint-cosine readout. LM tokens
+are ranked by |a|. The servers need a GPU to encode inputs live. Panels with
+no top inputs say so.
+
 ## Architectures
 
 | `--archs` (sweeps) | `--architecture` (training) | |
@@ -125,8 +175,9 @@ src/consdl/
   stats/      per-latent firing statistics (alive mask, dead counts, L0)
   metrics/    dictionary (DCS, #dead, #dup) and code (MCC, input R²) metrics
   io/         checkpoints, paths, Hugging Face Hub download
+  viewers/    latent explorer and cluster-consistency view (servers, hub, precompute)
   cli/        every entry point: train_*, sweep, stats_*, dict_metrics*,
-              code_metrics*, build_dictionary
+              code_metrics*, build_dictionary, viewer, viewer_precompute
 third_party/fastsae/  the SAE training library everything builds on (vendored)
 var/          (created at run time) checkpoints/, results/, cache/, logs/
 ```
