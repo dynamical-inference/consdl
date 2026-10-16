@@ -2,6 +2,8 @@
 
 Project page: [`docs/`](docs/).
 
+![ConSDL overview](docs/static/images/overview.png)
+
 Code for the paper's experiments: the ConSDL training objective, the six
 SAE baselines it is compared against, the cross-seed consistency and
 reconstruction metrics, and the synthetic benchmark with a known

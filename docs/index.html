@@ -99,9 +99,10 @@
           <span><sup>2</sup>Helmholtz Munich</span>
         </div>
         <div class="mt-8 flex flex-wrap justify-center gap-3">
-          <!-- Replace data-notice with href="..." once the paper and code are public. -->
+          <!-- Replace data-notice with href="..." once the paper is public. -->
           <a href="#" class="btn" data-notice="The paper will be released soon."><i class="fa-solid fa-file-pdf"></i> Paper</a>
-          <a href="#" class="btn" data-notice="The code will be released soon."><i class="fa-brands fa-github"></i> Code</a>
+          <a href="https://github.com/dynamical-inference/consdl" class="btn" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> Code</a>
+          <a href="https://huggingface.co/dynamical-inference/consdl" class="btn" target="_blank" rel="noopener"><span aria-hidden="true">🤗</span> Models</a>
           <a href="#demo" class="btn btn-accent"><i class="fa-solid fa-circle-play"></i> Demo</a>
         </div>
       </div>
@@ -260,8 +261,70 @@
     <!-- Analysis -->
     <section id="analysis" class="section">
       <div class="mx-auto max-w-6xl px-4">
-        <h2 class="h2 text-center">Consistency beyond individual atoms</h2>
-        <p class="lead">
+        <h2 class="h2 text-center">Analysis</h2>
+
+        <h3 class="h3-section">Finer-grained concepts</h3>
+        <p class="body-text">
+          On CLIP ViT-B/16 (16×, ℓ<sub>0</sub> ≈ 128), ConSDL learns about 9K consistent atoms (cross-seed cosine
+          &gt; 0.7), compared with 4K for ReLU. Where ReLU learns one broad atom, ConSDL often learns several matched atoms
+          that each capture a more specific feature.
+        </p>
+
+        <div class="fig-tabs" data-tabs>
+          <div class="mb-4 flex flex-wrap justify-center gap-2">
+            <button class="tab tab-active" data-tab="clip">CLIP ViT-B/16</button>
+            <button class="tab" data-tab="pythia">Pythia-160M</button>
+          </div>
+          <figure class="fig" data-panel="clip">
+            <div class="fig-frame"><img src="static/images/finer_concepts_clip.jpg" alt="A ReLU beer-bottle atom and its matched ConSDL atoms in CLIP ViT-B/16" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>One ReLU atom, several ConSDL atoms.</strong> A ReLU “beer bottle” atom matches five ConSDL atoms
+              (decoder cosine &gt; 0.7) for bottle necks, bubbles, bottle shapes, and beer in glasses. The ConSDL atoms
+              differ from each other (pairwise cosine ~0.5) and respond to different image regions.
+            </figcaption>
+          </figure>
+          <figure class="fig hidden" data-panel="pythia">
+            <div class="fig-frame"><img src="static/images/finer_concepts_pythia.jpg" alt="A ReLU baseball atom and its matched ConSDL atoms in Pythia-160M" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>One ReLU atom, several ConSDL atoms.</strong> A ReLU “baseball” atom matches seven ConSDL atoms
+              (decoder cosine 0.73–0.79) for team names, pitching, field positions, and more, with little token-level
+              overlap (0.06–0.28). Concept labels by Claude Opus 5.5 from top-activating samples.
+            </figcaption>
+          </figure>
+        </div>
+
+        <h3 class="h3-section">Larger dictionaries, more detailed concepts</h3>
+        <p class="body-text">
+          Going from 4× to 16× expansion, a broad ConSDL atom splits into several more specific atoms, while ReLU and
+          TopK keep nearly the same broad atom. Across all four backbones, consistent ConSDL atoms at 4× more often have
+          multiple counterparts at 16× than ReLU or TopK atoms.
+        </p>
+
+        <div class="fig-tabs" data-tabs>
+          <div class="mb-4 flex flex-wrap justify-center gap-2">
+            <button class="tab tab-active" data-tab="clip">CLIP ViT-B/16</button>
+            <button class="tab" data-tab="pythia">Pythia-160M</button>
+          </div>
+          <figure class="fig" data-panel="clip">
+            <div class="fig-frame"><img src="static/images/dictionary_size_clip.jpg" alt="A 4× ConSDL retriever atom and its 16× counterparts in CLIP ViT-B/16" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>4× vs. 16× dictionaries.</strong> A 4× ConSDL “Golden Retriever” atom corresponds to six 16× atoms
+              for fur, tails, muzzle shapes, and puppies. ReLU and TopK keep a nearly identical retriever atom (cosine
+              0.99 and 0.98).
+            </figcaption>
+          </figure>
+          <figure class="fig hidden" data-panel="pythia">
+            <div class="fig-frame"><img src="static/images/dictionary_size_pythia.jpg" alt="A 4× ConSDL plant atom and its 16× counterparts in Pythia-160M" class="zoomable mx-auto w-full" loading="lazy"></div>
+            <figcaption class="caption">
+              <strong>4× vs. 16× dictionaries.</strong> A 4× ConSDL “plants” atom matches four 16× atoms for plant
+              species, crops, and flowers. ReLU keeps a highly similar plant atom (cosine 0.95). Concept labels by Claude
+              Opus 5.5 from top-activating samples.
+            </figcaption>
+          </figure>
+        </div>
+
+        <h3 class="h3-section">Consistency beyond individual atoms</h3>
+        <p class="body-text">
           We examine whether atom-level consistency extends to the overall structure of the dictionary. For CLIP
           ViT-B/16, we cluster atoms based on similarity between decoder directions and compare cluster sizes and
           centroids across training runs.
