@@ -1,6 +1,6 @@
 # ConSDL: Consistent Sparse Dictionary Learning
 
-Project page: [`docs/`](docs/).
+Paper: [arXiv:2610.23801](https://arxiv.org/abs/2610.23801) · Project page: [`docs/`](docs/).
 
 ![ConSDL overview](docs/static/images/overview.png)
 
